@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CYBER-X BROWSER</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080d17;color:#edf5ff;font-family:Arial,sans-serif}
+header{height:65px;padding:0 5%;display:flex;align-items:center;justify-content:space-between;background:#0d1625;border-bottom:1px solid #20334b}
+.logo{font-size:21px;font-weight:900;letter-spacing:2px}.logo span{color:#00e5ff}
+.status{font-size:11px;color:#00f5a0}
+main{max-width:1050px;margin:65px auto;padding:20px;text-align:center}
+h1{font-size:48px;margin:0 0 10px;letter-spacing:3px}
+h1 span{color:#00e5ff}
+.subtitle{color:#8499b5;margin-bottom:35px}
+.search{display:flex;gap:8px;background:#111d30;border:1px solid #29405e;padding:9px;border-radius:15px;box-shadow:0 15px 55px #00cfff12}
+select,input{background:transparent;color:white;border:0;outline:0}
+select{padding:10px;width:120px}select option{background:#111d30}
+input{flex:1;min-width:0;padding:12px;font-size:16px}
+button{cursor:pointer;border:0;border-radius:9px;padding:12px 18px;background:#00d9f5;color:#06101a;font-weight:bold}
+button:hover{filter:brightness(1.15)}
+.shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:38px 0}
+.shortcut,.panel{background:#101b2c;border:1px solid #20334b;border-radius:13px;padding:19px}
+.shortcut a{color:#dceeff;text-decoration:none;font-weight:bold}
+.shortcut:hover{border-color:#00dfff}
+.shortcut div{font-size:27px;margin-bottom:10px}
+.section{display:flex;justify-content:space-between;align-items:center;margin:25px 0 12px;text-align:left}
+.section h2{font-size:17px}
+.panel{text-align:left;min-height:80px;color:#aabbd0}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 2px;border-bottom:1px solid #20334b;overflow-wrap:anywhere}
+.item a{color:#00dfff;text-decoration:none}
+.item button{padding:7px 10px;font-size:11px}
+.tools{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:25px}
+.tools button{background:#14243a;color:#bcefff;border:1px solid #29445f}
+footer{color:#647995;font-size:12px;padding:40px 10px}
+@media(max-width:600px){main{margin:35px auto}h1{font-size:32px}.shortcuts{grid-template-columns:repeat(2,1fr)}.search{flex-wrap:wrap}.search select{width:100%}.search input{width:100%;flex:auto}}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">CYBER<span>-X</span> BROWSER</div>
+ <div class="status">● READY</div>
+</header>
+<main>
+ <h1>CYBER<span>-X</span></h1>
+ <div class="subtitle">Your Web. Your Way. Explore the Internet.</div>
+
+ <form class="search" id="searchForm">
+  <select id="engine" aria-label="Search engine">
+   <option value="https://www.google.com/search?q=">Google</option>
+   <option value="https://www.bing.com/search?q=">Bing</option>
+   <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+  </select>
+  <input id="query" placeholder="Search or enter website address..." autocomplete="off" required>
+  <button type="submit">GO ↗</button>
+ </form>
+
+ <div class="section"><h2>QUICK ACCESS</h2></div>
+ <div class="shortcuts">
+  <div class="shortcut"><a href="https://www.google.com" target="_blank" rel="noopener"><div>🔎</div>Google</a></div>
+  <div class="shortcut"><a href="https://www.youtube.com" target="_blank" rel="noopener"><div>▶️</div>YouTube</a></div>
+  <div class="shortcut"><a href="https://www.wikipedia.org" target="_blank" rel="noopener"><div>📚</div>Wikipedia</a></div>
+  <div class="shortcut"><a href="https://github.com" target="_blank" rel="noopener"><div>💻</div>GitHub</a></div>
+ </div>
+
+ <div class="section"><h2>⭐ BOOKMARKS</h2><button onclick="addBookmark()">+ Add current address</button></div>
+ <div class="panel" id="bookmarks">No bookmarks saved yet.</div>
+
+ <div class="section"><h2>🕘 RECENT SEARCHES</h2><button onclick="clearHistory()">Clear history</button></div>
+ <div class="panel" id="history">No searches yet.</div>
+
+ <div class="tools">
+  <button onclick="document.getElementById('query').focus()">⌕ Search</button>
+  <button onclick="window.open('https://www.google.com','_blank','noopener')">🌐 Open Google</button>
+  <button onclick="toggleTheme()">◐ Theme</button>
+ </div>
+ <footer>CYBER-X BROWSER · VERSION 1.0 · POWERED BY WEB SEARCH</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const read=(key)=>{try{return JSON.parse(localStorage.getItem(key)||'[]')}catch(e){return[]}};
+const write=(key,data)=>localStorage.setItem(key,JSON.stringify(data));
+let lastAddress='';
+function destination(value){
+ let v=value.trim();
+ if(!v)return null;
+ if(/^https?:\/\//i.test(v))return v;
+ if(/^(localhost|[\w-]+\.)+[\w-]{2,}(:\d+)?(\/.*)?$/i.test(v)&&!v.includes(' '))return 'https://'+v;
+ return $('engine').value+encodeURIComponent(v);
+}
+$('searchForm').addEventListener('submit',e=>{
+ e.preventDefault();
+ const address=destination($('query').value);
+ if(!address)return;
+ lastAddress=address;
+ let h=read('cx_history');
+ h.unshift({text:$('query').value,url:address});
+ write('cx_history',h.slice(0,20));
+ render();
+ window.open(address,'_blank','noopener');
+});
+function addBookmark(){
+ const value=prompt('Enter a website address:');
+ if(!value)return;
+ const url=destination(value);
+ if(!url)return;
+ const b=read('cx_bookmarks');
+ if(!b.some(x=>x.url===url)){b.unshift({text:value,url});write('cx_bookmarks',b)}
+ render();
+}
+function removeBookmark(url){
+ write('cx_bookmarks',read('cx_bookmarks').filter(x=>x.url!==url));render();
+}
+function clearHistory(){write('cx_history',[]);render()}
+function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){
+ const b=read('cx_bookmarks'),h=read('cx_history');
+ $('bookmarks').innerHTML=b.length?b.map(x=>`<div class="item"><a href="${safe(x.url)}" target="_blank" rel="noopener">${safe(x.text)}</a><button onclick="removeBookmark('${safe(x.url)}')">Remove</button></div>`).join(''):'No bookmarks saved yet.';
+ $('history').innerHTML=h.length?h.map(x=>`<div class="item"><a href="${safe(x.url)}" target="_blank" rel="noopener">${safe(x.text)}</a><span>↗</span></div>`).join(''):'No searches yet.';
+}
+function toggleTheme(){
+ document.body.style.background=document.body.style.background.includes('rgb(240')?'#080d17':'#f0f4fa';
+ document.body.style.color=document.body.style.background==='#f0f4fa'?'#15243a':'#edf5ff';
+}
+render();
+</script>
+</body>
+</html>
